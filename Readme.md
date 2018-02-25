@@ -1,57 +1,49 @@
 
 # jsonp
 
-A simple JSONP implementation.
+一个基于 ES6 语法创建的 jsonp 库，
 
-[![saucelabs][saucelabs-image]][saucelabs-url]
+# 用法介绍
 
-## Installation
-
-Install for node.js or browserify using `npm`:
+通过 npm 进行安装：
 
 ``` bash
 $ npm install jsonp
 ```
 
-Install for component(1) using `component`:
+直接引入 js 文件：
 
-``` bash
-$ component install LearnBoost/jsonp
-```
-
-Install for browser using `bower`:
-
-``` bash
-$ bower install jsonp
+```js
+import jsonp from 'jsonp'
 ```
 
 ## API
 
 ### jsonp(url, opts, fn)
 
-- `url` (`String`) url to fetch
-- `opts` (`Object`), optional
-  - `param` (`String`) name of the query string parameter to specify
-    the callback (defaults to `callback`)
-  - `timeout` (`Number`) how long after a timeout error is emitted. `0` to
-    disable (defaults to `60000`)
-  - `prefix` (`String`) prefix for the global callback functions that
-    handle jsonp responses (defaults to `__jp`)
-  - `name` (`String`) name of the global callback functions that
-    handle jsonp responses (defaults to `prefix` + incremented counter)
-- `fn` callback
+- `url` (`String`) 请求的地址
+- `data` （`Object`) query 对象
+- `opts` (`Object`) jsonp 的一些参数
+  - `param` (`String`) 指定 jsonp 回调函数的键值（默认为 `callback`）
+  - `timeout` (`Number`) 限定多长时间（单位：毫秒）无响应后，jsonp 取消操作，并返回一个 “Timeout” 的错误(默认值为 `60000`)
+  - `prefix` (`String`) jsonp 回调函数名的前缀 (默认为 `__jp`)
+  - `name` (`String`) jsonp 回调函数名 (默认为 `prefix` + 计数器)
 
-The callback is called with `err, data` parameters.
+jsonp 执行后返回一个 `Promise` 对象，接收到的数据将传入 then 的 resolve 回调函数。
 
-If it times out, the `err` will be an `Error` object whose `message` is
-`Timeout`.
+示例：
 
-Returns a function that, when called, will cancel the in-progress jsonp request
-(`fn` won't be called).
+```js
+import jsonp from 'jsonp';
 
-## License
-
-MIT
-
-[saucelabs-image]: https://saucelabs.com/browser-matrix/jsonp.svg
-[saucelabs-url]: https://saucelabs.com/u/jsonp
+jsonp('api.example.com', {
+  name: 'John',
+  age: 27
+}, {
+  prefix: 'jsonp',
+  param: 'cb'
+})
+.then((data) => {
+  // 具体操作数据的代码...
+})
+```

@@ -1,57 +1,58 @@
-/**
- * Module dependencies
- */
+export default jsonp;
 
-var debug = require('debug')('jsonp');
+let count = 0;
 
-/**
- * Module exports.
- */
+function jsonp(url, data, opts) {
+  let urlWithData = spliceURL(url, data);
+  return new Promise((resolve, reject) => {
+    originJsonp(urlWithData, opts, (err, resData) => {
+      if (err) reject(err);
+      resolve(resData);
+    })
+  });
+}
 
-module.exports = jsonp;
-
-/**
- * Callback index.
- */
-
-var count = 0;
-
-/**
- * Noop function.
- */
-
+/* noop 函数 */
 function noop(){}
 
 /**
- * JSONP handler
- *
- * Options:
- *  - param {String} qs parameter (`callback`)
- *  - prefix {String} qs parameter (`__jp`)
- *  - name {String} qs parameter (`prefix` + incr)
- *  - timeout {Number} how long after a timeout error is emitted (`60000`)
- *
- * @param {String} url
- * @param {Object|Function} optional options / callback
- * @param {Function} optional callback
+ * spliceUrl 拼接 url 字符串
+ * 
+ * @param {String} url 一个 url 字符串
+ * @param {Object} data 其中的键值对经编码后最终将添加到 url 中
+ * @return {String} 最终拼接完成的 url
  */
+function spliceUrl(url, data) {
+  const finalUrl = '';
+  const enc = encodeURIComponent;
 
-function jsonp(url, opts, fn){
+  if ('object' === typeof data || data != null) {
+    for (let key in data) {
+      finalUrl += `&${enc(key)}=${enc(data[key])}`;
+    }
+  }
+  finalUrl = finalUrl.substring(1);
+  finalUrl = ~url.indexOf('?') ? '&' : '?' + finalUrl;
+  finalUrl = finalUrl.repeat('?&', '?');
+
+  return finalUrl;
+}
+
+function originJsonp(url, opts, fn){
   if ('function' == typeof opts) {
     fn = opts;
     opts = {};
   }
   if (!opts) opts = {};
 
-  var prefix = opts.prefix || '__jp';
+  const prefix = opts.prefix || '__jp';
 
-  // use the callback name that was passed if one was provided.
-  // otherwise generate a unique name by incrementing our counter.
-  var id = opts.name || (prefix + (count++));
+  // 如果 opts 提供了 name 值，jsonp 函数名就用 name 值
+  // 如果没有提供就使用 prefix + count 计数器命名
+  const id = opts.name || (prefix + (count++));
 
   var param = opts.param || 'callback';
   var timeout = null != opts.timeout ? opts.timeout : 60000;
-  var enc = encodeURIComponent;
   var target = document.getElementsByTagName('script')[0] || document.head;
   var script;
   var timer;
@@ -77,20 +78,16 @@ function jsonp(url, opts, fn){
   }
 
   window[id] = function(data){
-    debug('jsonp got', data);
     cleanup();
     if (fn) fn(null, data);
   };
 
-  // add qs component
-  url += (~url.indexOf('?') ? '&' : '?') + param + '=' + enc(id);
-  url = url.replace('?&', '?');
-
-  debug('jsonp req "%s"', url);
+  // 在 url 中添加 jsonp 函数名键值
+  const finalUrl = finalUrl(url, { [param]: id });
 
   // create script
   script = document.createElement('script');
-  script.src = url;
+  script.src = finalUrl;
   target.parentNode.insertBefore(script, target);
 
   return cancel;
