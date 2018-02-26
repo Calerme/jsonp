@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>TEST PAGE</title>
+  <script src="../index.js"></script>
+</head>
+<body>
+  <p>如果返回一段JSON，则说明 jsonp 请求成功</p>
+  <pre id="result"></pre>
+  <script>
+    jsonp('http://dp3.qq.com/dynamic?get_type=cm&ch=www&callback=crystal.cookieMapping')
+      .then(data => {
+        const ret = document.getElementById('result');
+        ret.innerHTML = JSON.stringify(data);
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  </script>
+</body>
+</html>
